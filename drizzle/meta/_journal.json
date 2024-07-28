@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1722000909891,
+      "tag": "0000_broad_frank_castle",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1722071353103,
+      "tag": "0001_past_marvel_zombies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1722156526479,
+      "tag": "0002_clever_phantom_reporter",
+      "breakpoints": true
+    }
+  ]
+}

@@ -11,9 +11,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   getAllExpensesQueryOptions,
   loadingCreateExpenseQueryOptions,
+  deleteExpense,
 } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/expenses")({
   component: Expenses,
@@ -48,6 +52,9 @@ function Expenses() {
               <TableCell>{loadingCreateExpense?.expense.title}</TableCell>
               <TableCell>{loadingCreateExpense?.expense.amount}</TableCell>
               <TableCell>{loadingCreateExpense?.expense.date}</TableCell>
+              <TableCell>
+                <Skeleton className="h-4" />
+              </TableCell>
             </TableRow>
           )}
           {isPending
@@ -75,6 +82,9 @@ function Expenses() {
                   <TableCell>{expense.title}</TableCell>
                   <TableCell>{expense.amount}</TableCell>
                   <TableCell>{expense.date}</TableCell>
+                  <TableCell>
+                    <ExpenseDeleteButton id={expense.id} />
+                  </TableCell>
                 </TableRow>
               ))}
         </TableBody>
@@ -83,47 +93,37 @@ function Expenses() {
   );
 }
 
-const expenses = [
-  {
-    expense: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    expense: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    expense: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    expense: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$550.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV006",
-    paymentStatus: "Pending",
-    totalAmount: "$200.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV007",
-    paymentStatus: "Unpaid",
-    totalAmount: "$300.00",
-    paymentMethod: "Credit Card",
-  },
-];
+function ExpenseDeleteButton({ id }: { id: number }) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: deleteExpense,
+    onError: () => {
+      toast("Error", {
+        description: `Failed to delete expense: ${id}`,
+      });
+    },
+    onSuccess: (data, variables, context) => {
+      toast("Expense Deleted", {
+        description: `Successfully deleted expense: ${id}`,
+      });
+      queryClient.setQueryData(
+        getAllExpensesQueryOptions.queryKey,
+        (existingExpenses) => ({
+          ...existingExpenses,
+          expenses: existingExpenses!.expenses.filter((e) => e.id !== id),
+        })
+      );
+    },
+  });
+
+  return (
+    <Button
+      disabled={mutation.isPending}
+      onClick={() => mutation.mutate({ id })}
+      variant="outline"
+      size="icon"
+    >
+      {mutation.isPending ? "..." : <Trash className="h-4 w-4" />}
+    </Button>
+  );
+}
